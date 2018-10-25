@@ -1,82 +1,67 @@
 const router = require("express").Router();
 const Article = require("../models/article.js");
+const request = require("request");
 // import axios from "axios";
 
+router.post("/api/articles", function (req, res) {
 
-// You'll need several Express routes for your app:
+  Article.create(req.body)
+    .then((dbArticle) => {
+      res.json(dbArticle);
+    })
+    .catch((err) => {
+      res.json(err);
+    });
 
-// /api/articles (get) - your components will use this to query MongoDB for all saved articles
+});
 
-// /api/articles (post) - your components will use this to save an article to the database
-
-// /api/articles (delete) - your components will use this to delete a saved article in the database
-
-// * (get) - will load your single HTML page (with ReactJS) in client/build/index.html. Make sure you put this after all other GET routes
-
-router.get("/api/articles", function(req, res) {
+router.get("/api/articles", function (req, res) {
 
   Article.find({}).then((articles) => {
     res.json(articles);
     console.log(articles)
-  });
+  })
+    .catch((err) => {
+      res.json(err);
+    });
 
+});
 
-})
+router.delete("/api/articles", function (req, res) {
 
-router.post("/api/articles", function(req, res) {
-
-
-  Article.create(req.body)
-  .then(() => {
-    res.json(true);
+  Article.deleteOne({ title: 'nice one' }).then((data) => {
+    if (data.n === 0) {
+      res.json("no articles deleted")
+    } else {
+      res.json("deleted")
+    }
   })
   .catch((err) => {
     res.json(err);
   });
 
+});
 
-})
+router.get("/articles", function (req, res) {
 
-router.get("/api/articles", function(req, res) {
-
-  Article.find({}).then((articles) => {
-    res.json(articles);
-    console.log(articles)
-  });
-
-
-})
-
-
-router.post("/save", function(req, res) {
-  
-  // // TODO: save posted data in mongo db
-
-  //   // Create a new user using req.body
-  //   console.log(req.body)
-  //   Person.create(req.body)
-  //   .then(function(dbPerson) {
-  //     // If saved successfully, send the the new User document to the client
-  //     res.json(dbPerson);
-  //   })
-  //   .catch(function(err) {
-  //     // If an error occurs, send the error to the client
-  //     res.json(err);
-  //   });
-
+  request.get({
+    url: "https://api.nytimes.com/svc/search/v2/articlesearch.json",
+    qs: {
+      'api-key': "b9f91d369ff59547cd47b931d8cbc56b:0:74623931",
+      'q': "lightning",
+      'begin_date': "20000101",
+      'end_date': "20010101"
+    },
+  }, function(err, response, body) {
+    body = JSON.parse(body);
+    res.json(body)
+  })
 
 });
 
+
+
+// axios.get("https://api.nytimes.com/svc/search/v2/articlesearch.json")
+
 module.exports = router;
 
-
-
-// request.get({
-//   url: "https://api.nytimes.com/svc/search/v2/articlesearch.json",
-//   qs: {
-//     'api-key': "b9f91d369ff59547cd47b931d8cbc56b:0:74623931"
-//   },
-// }, function(err, response, body) {
-//   body = JSON.parse(body);
-//   console.log(body);
-// })
